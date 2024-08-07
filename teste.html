@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .linha {
+            display: flex;
+        }
+
+        .quadrado {
+            width: 80px;
+            height: 80px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <!-- só isso de HTML, o resto é JS -->
+        <!-- <img src="./bandeira.jpg"> -->
+    </div>
+    <script>
+        let container = document.getElementById("container");
+        let botao = document.createElement("div");
+        let textobotao = document.createTextNode("Reiniciar");
+        botao.appendChild(textobotao);
+        botao.setAttribute("onClick", "Reiniciar()");
+        container.appendChild(botao);
+
+        for (let i = 1; i <= 3; i++) {
+            container.innerHTML += `<div id="linha${i}" class="linha">  </div>`;
+        }
+
+
+        for (let i = 1; i <= 3; i++) {
+            let linha = document.getElementById(`linha${i}`);
+            for (let j = 1; j <= 3; j++) {
+                let quadrado = document.createElement("img");
+                let numero;
+                if (i == 2) {
+                    numero = 3 + j;
+                }
+                else if (i == 3) {
+                    numero = 6 + j
+                }
+                else {
+                    numero = j;
+                }
+
+                quadrado.setAttribute("id", `quadrado${numero}`);
+                quadrado.setAttribute("class", "quadrado");
+                quadrado.setAttribute("onmousedown", `Mudar(${numero},event)`);
+                quadrado.setAttribute("src", "./quadrado.png");
+                // texto = document.createTextNode(`quadrado${i}.${j}`);
+                // quadrado.appendChild(texto);
+                linha.appendChild(quadrado);
+            }
+        }
+        function Mudar(a, event) {
+            // console.log(event.preventDefault());
+            console.log("teste");
+            let quadradoescolhido = document.getElementById(`quadrado${a}`);
+            if (event.button == 0) {
+                console.log(event.button);
+                if (listabombas[a-1] == 1) {
+                    console.log("boom");
+                    quadradoescolhido.setAttribute("src", "./boom.png");
+                }
+                else if (listabombas[a-1] == 0) {
+                    quadradoescolhido.setAttribute("src", "./vazio.png");
+                }
+
+            }
+            if (event.button == 2) {
+                quadradoescolhido.setAttribute("src", "./bandeira.jpg");
+                OlharEmVolta(a);
+                console.log(event.button);
+            }
+        }
+        listabombas = [];
+        function Reiniciar() {
+            listabombas = [];
+            for (let i = 1; i <= 3; i++) {
+                for (let j = 1; j <= 3; j++) {
+                    let numero = 0;
+                    if (i == 2) {
+                        numero = 3 + j;
+                    }
+                    else if (i == 3) {
+                        numero = 6 + j
+                    }
+                    else {
+                        numero = j;
+                    }
+                    let tembomba = Math.floor(Math.random() * 2);
+                    let quadrado = document.getElementById(`quadrado${numero}`);
+                    listabombas.push(tembomba);
+                    console.log(listabombas);
+                    quadrado.setAttribute("src", "./quadrado.png")
+                }
+            }
+        }
+        //  function OlharEmVolta(a)
+        //  {
+            
+        //  }
+    </script>
+</body>
+
+</html>
