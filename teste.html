@@ -11,53 +11,114 @@
         }
 
         .quadrado {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
+        }
+
+        button {
+            border: outset;
+            width: 130px;
+            margin: 1%;
+
+        }
+
+        button:active {
+            background-color: grey;
         }
     </style>
 </head>
 
 <body>
-    <div id="container">
-        <!-- só isso de HTML, o resto é JS -->
-        <!-- <img src="./bandeira.jpg"> -->
-    </div>
-    <script>
-        let container = document.getElementById("container");
-        let botao = document.createElement("div");
-        let textobotao = document.createTextNode("Reiniciar");
-        botao.appendChild(textobotao);
-        botao.setAttribute("onClick", "Reiniciar()");
-        container.appendChild(botao);
 
-        for (let i = 1; i <= 3; i++) {
-            container.innerHTML += `<div id="linha${i}" class="linha">  </div>`;
+    <div id="container">
+    </div>
+
+    <script>
+
+        //variaveis e constantes
+        let listabombas = [];
+        let lado;
+        const container = document.getElementById("container");
+
+        //tabuleiro e opcoes
+        let opcoes = document.createElement("div");
+        let jogo = document.createElement("div");
+        container.appendChild(opcoes);
+        container.appendChild(jogo);
+
+
+        //form de definirlado
+        let form = document.createElement("form");
+        let select = document.createElement("select");
+        let label = document.createElement("label");
+        let textolabel = document.createTextNode("Tamanho do lado: ");
+        select.setAttribute("onClick", `MudarLado()`)
+        label.appendChild(textolabel);
+        form.appendChild(label);
+        form.appendChild(select);
+        opcoes.appendChild(form);
+
+
+        //reiniciar
+        let reiniciar = document.createElement("button");
+        let textobotao = document.createTextNode("Reiniciar");
+        reiniciar.appendChild(textobotao);
+        reiniciar.setAttribute("onClick", "Reiniciar()");
+        opcoes.appendChild(reiniciar);
+
+
+        //opcoes de lado
+
+        for (let i = 3; i <= 15; i++) {
+            let option = document.createElement("option");
+            let textoOption = document.createTextNode(`${i}`);
+            option.appendChild(textoOption);
+            select.appendChild(option);
+
         }
 
 
-        for (let i = 1; i <= 3; i++) {
-            let linha = document.getElementById(`linha${i}`);
-            for (let j = 1; j <= 3; j++) {
-                let quadrado = document.createElement("img");
-                let numero;
-                if (i == 2) {
-                    numero = 3 + j;
-                }
-                else if (i == 3) {
-                    numero = 6 + j
-                }
-                else {
-                    numero = j;
-                }
 
-                quadrado.setAttribute("id", `quadrado${numero}`);
-                quadrado.setAttribute("class", "quadrado");
-                quadrado.setAttribute("onmousedown", `Mudar(${numero},event)`);
-                quadrado.setAttribute("src", "./quadrado.png");
-                // texto = document.createTextNode(`quadrado${i}.${j}`);
-                // quadrado.appendChild(texto);
-                linha.appendChild(quadrado);
+        function MudarLado() {
+            tamanho = event.target.value;
+            AlterandoLado(tamanho);
+        }
+        function AlterandoLado(escolha) {
+
+            console.log(escolha);
+            if (escolha != lado) {
+
+                lado = escolha;
+                //apagando o tabuleiro anterior:
+                jogo.innerHTML = "";
+                //criando os quadrados:
+                for (let i = 0; i <= escolha -1; i++) {
+                    jogo.innerHTML += `<div id="linha${i}" class="linha">  </div>`;
+                }
+                for (let i =0; i <= escolha -1; i++) {
+                    let linha = document.getElementById(`linha${i}`);
+                    for (let j = 1; j <= escolha; j++) {
+                        let quadrado = document.createElement("img");
+                        let numero = (i*escolha) + j;
+
+                        quadrado.setAttribute("id", `quadrado${numero}`);
+                        quadrado.setAttribute("class", "quadrado");
+                        quadrado.setAttribute("onmousedown", `Mudar(${numero},event)`);
+                        quadrado.setAttribute("src", "./quadrado.png");
+                        quadrado.addEventListener(`contextmenu`, function (event) {
+                            event.preventDefault();
+                        });
+
+                        // texto = document.createTextNode(`quadrado${i}.${j}`);
+                        // quadrado.appendChild(texto);
+                        linha.appendChild(quadrado);
+                        document.addEventListener(`quadrado${numero}`, function (event) {
+                            event.preventDefault();
+                        });
+                    }
+                }
             }
+            Reiniciar();
         }
         function Mudar(a, event) {
             // console.log(event.preventDefault());
@@ -65,36 +126,27 @@
             let quadradoescolhido = document.getElementById(`quadrado${a}`);
             if (event.button == 0) {
                 console.log(event.button);
-                if (listabombas[a-1] == 1) {
+                if (listabombas[a - 1] == 1) {
                     console.log("boom");
                     quadradoescolhido.setAttribute("src", "./boom.png");
                 }
-                else if (listabombas[a-1] == 0) {
+                else if (listabombas[a - 1] == 0) {
                     quadradoescolhido.setAttribute("src", "./vazio.png");
+                    // OlharEmVolta(a);
                 }
-
             }
             if (event.button == 2) {
                 quadradoescolhido.setAttribute("src", "./bandeira.jpg");
-                OlharEmVolta(a);
+
                 console.log(event.button);
             }
         }
-        listabombas = [];
+
         function Reiniciar() {
             listabombas = [];
-            for (let i = 1; i <= 3; i++) {
-                for (let j = 1; j <= 3; j++) {
-                    let numero = 0;
-                    if (i == 2) {
-                        numero = 3 + j;
-                    }
-                    else if (i == 3) {
-                        numero = 6 + j
-                    }
-                    else {
-                        numero = j;
-                    }
+            for (let i = 0; i <= lado -1; i++) {
+                for (let j = 1; j <= lado; j++) {
+                    let numero = (i*lado) + j;
                     let tembomba = Math.floor(Math.random() * 2);
                     let quadrado = document.getElementById(`quadrado${numero}`);
                     listabombas.push(tembomba);
@@ -105,8 +157,11 @@
         }
         //  function OlharEmVolta(a)
         //  {
-            
+
         //  }
+        AlterandoLado(3);
+
+
     </script>
 </body>
 
