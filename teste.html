@@ -38,6 +38,7 @@
         //variaveis e constantes
         let listabombas = [];
         let lado;
+        const listaimagens = ["./vazio.png", "./um.png", "./dois.png", "./tres.png", "./quatro.png", "./cinco.png", "./seis.png", "./sete.png", "./oito.jpg"];
         const container = document.getElementById("container");
 
         //tabuleiro e opcoes
@@ -81,9 +82,9 @@
 
         function MudarLado() {
             tamanho = event.target.value;
-            AlterandoLado(tamanho);
+            GerarTabuleiro(tamanho);
         }
-        function AlterandoLado(escolha) {
+        function GerarTabuleiro(escolha) {
 
             console.log(escolha);
             if (escolha != lado) {
@@ -92,18 +93,18 @@
                 //apagando o tabuleiro anterior:
                 jogo.innerHTML = "";
                 //criando os quadrados:
-                for (let i = 0; i <= escolha -1; i++) {
+                for (let i = 0; i <= escolha - 1; i++) {
                     jogo.innerHTML += `<div id="linha${i}" class="linha">  </div>`;
                 }
-                for (let i =0; i <= escolha -1; i++) {
+                for (let i = 0; i <= escolha - 1; i++) {
                     let linha = document.getElementById(`linha${i}`);
                     for (let j = 1; j <= escolha; j++) {
                         let quadrado = document.createElement("img");
-                        let numero = (i*escolha) + j;
+                        let numero = (i * escolha) + j;
 
                         quadrado.setAttribute("id", `quadrado${numero}`);
                         quadrado.setAttribute("class", "quadrado");
-                        quadrado.setAttribute("onmousedown", `Mudar(${numero},event)`);
+                        quadrado.setAttribute("onmousedown", `MudarQuadrado(${numero},event)`);
                         quadrado.setAttribute("src", "./quadrado.png");
                         quadrado.addEventListener(`contextmenu`, function (event) {
                             event.preventDefault();
@@ -120,7 +121,7 @@
             }
             Reiniciar();
         }
-        function Mudar(a, event) {
+        function MudarQuadrado(a, event) {
             // console.log(event.preventDefault());
             console.log("teste");
             let quadradoescolhido = document.getElementById(`quadrado${a}`);
@@ -131,22 +132,29 @@
                     quadradoescolhido.setAttribute("src", "./boom.png");
                 }
                 else if (listabombas[a - 1] == 0) {
-                    quadradoescolhido.setAttribute("src", "./vazio.png");
-                    // OlharEmVolta(a);
+                    console.log("clicou vazio");
+                    let bombasEncontradas = listaimagens[OlharEmVolta(a)];
+                    console.log("bombas encontradas:" + bombasEncontradas);
+                    quadradoescolhido.setAttribute("src", bombasEncontradas);
                 }
             }
             if (event.button == 2) {
+                if(quadradoescolhido.getAttribute("src")=="./quadrado.png")
+            {
                 quadradoescolhido.setAttribute("src", "./bandeira.jpg");
-
-                console.log(event.button);
+            }
+            else if(quadradoescolhido.getAttribute("src")=="./bandeira.jpg")
+            {
+                quadradoescolhido.setAttribute("src", "./quadrado.png");
+            }
             }
         }
 
         function Reiniciar() {
             listabombas = [];
-            for (let i = 0; i <= lado -1; i++) {
+            for (let i = 0; i <= lado - 1; i++) {
                 for (let j = 1; j <= lado; j++) {
-                    let numero = (i*lado) + j;
+                    let numero = (i * lado) + j;
                     let tembomba = Math.floor(Math.random() * 2);
                     let quadrado = document.getElementById(`quadrado${numero}`);
                     listabombas.push(tembomba);
@@ -155,11 +163,42 @@
                 }
             }
         }
-        //  function OlharEmVolta(a)
-        //  {
+        function OlharEmVolta(a) {
+            let contBombas = 0;
+            let inicio = ValorDoInicio(a);
+            let fim = ValorDoFim(a)
 
-        //  }
-        AlterandoLado(3);
+            for (let i = -1; i <= 1; i++) {
+                for (let j = inicio; j <= fim; j++) {
+                    let posicao;
+                    posicao = a + (lado * i) + j;
+                    console.log("posicao" + posicao);
+                    if (listabombas[posicao - 1] == 1) {
+                        contBombas++;
+                        console.log(contBombas);
+                    }
+                }
+            }
+
+
+            return contBombas;
+        }
+        function ValorDoInicio(a) {
+            if (a % lado == 1) {
+                return 0;
+            }
+            else {
+                return -1;
+            }
+        }
+        function ValorDoFim(a) {
+            if (a % lado == 0) {
+                return 0;
+            }
+            else { return 1; }
+        }
+       
+        GerarTabuleiro(3);
 
 
     </script>
