@@ -104,7 +104,7 @@
 
                         quadrado.setAttribute("id", `quadrado${numero}`);
                         quadrado.setAttribute("class", "quadrado");
-                        quadrado.setAttribute("onmousedown", `MudarQuadrado(${numero},event)`);
+                        quadrado.setAttribute("onmousedown", `ClicouQuadrado(${numero},event)`);
                         quadrado.setAttribute("src", "./quadrado.png");
                         quadrado.addEventListener(`contextmenu`, function (event) {
                             event.preventDefault();
@@ -121,33 +121,88 @@
             }
             Reiniciar();
         }
-        function MudarQuadrado(a, event) {
+        function ClicouQuadrado(a, event) {
             // console.log(event.preventDefault());
             console.log("teste");
             let quadradoescolhido = document.getElementById(`quadrado${a}`);
             if (event.button == 0) {
-                console.log(event.button);
-                if (listabombas[a - 1] == 1) {
-                    console.log("boom");
-                    quadradoescolhido.setAttribute("src", "./boom.png");
-                }
-                else if (listabombas[a - 1] == 0) {
-                    console.log("clicou vazio");
-                    let bombasEncontradas = listaimagens[OlharEmVolta(a)];
-                    console.log("bombas encontradas:" + bombasEncontradas);
-                    quadradoescolhido.setAttribute("src", bombasEncontradas);
-                }
+                ChecarBomba(a);
             }
+
+
+
             if (event.button == 2) {
-                if(quadradoescolhido.getAttribute("src")=="./quadrado.png")
-            {
-                quadradoescolhido.setAttribute("src", "./bandeira.jpg");
+                if (quadradoescolhido.getAttribute("src") == "./quadrado.png") {
+                    quadradoescolhido.setAttribute("src", "./bandeira.jpg");
+                }
+                else if (quadradoescolhido.getAttribute("src") == "./bandeira.jpg") {
+                    quadradoescolhido.setAttribute("src", "./quadrado.png");
+                }
             }
-            else if(quadradoescolhido.getAttribute("src")=="./bandeira.jpg")
-            {
-                quadradoescolhido.setAttribute("src", "./quadrado.png");
+        }
+        function ChecarBomba(a) {
+            let quadradoescolhido = document.getElementById(`quadrado${a}`);
+            if (listabombas[a - 1] == 1) {
+                quadradoescolhido.setAttribute("src", "boom.png");
             }
+            else if (listabombas[a - 1] == 0) {
+                BotandoNumero(a);
+
+
             }
+        }
+        function BotandoNumero(a) {
+            let bombasEncontradas = listaimagens[ContarBombasEmVolta(a)];
+            quadradoescolhido.setAttribute("src", bombasEncontradas);
+            if (bombasEncontradas == "./vazio.png") {
+                Expandir(a);
+            }
+        }
+        function GetImagem(a) {
+            console.log("GetImagem");
+            let quadradoescolhido = document.getElementById(`quadrado${a + 1}`);
+            let imagem = quadradoescolhido.getAttribute("src", quadradoescolhido);
+            console.log("imagem:" + imagem);
+            return imagem;
+        }
+        function Expandir(a) {
+            console.log("Expandir");
+            let inicio = ValorDoInicio(a);
+            let fim = ValorDoFim(a);
+            let posicao;
+
+            for (let i = -1; i <= 1; i++) {
+                for (let j = inicio; j <= fim; j++) {
+
+                    posicao = a + (lado * i) + j;
+                    let imagem = GetImagem(posicao);
+                    if (imagem == "./vazio.png") {
+                        continuarExpandindo(posicao);
+                    }
+
+                }
+            }
+        }
+
+        function continuarExpandindo(a) {
+            let inicio = ValorDoInicio(a);
+            let fim = ValorDoFim(a);
+            let posicao;
+
+            for (let i = -1; i <= 1; i++) {
+                for (let j = inicio; j <= fim; j++) {
+
+                    posicao = a + (lado * i) + j;
+                    if (listabombas[posicao - 1] == 1) {
+                        break;
+
+                    } else {
+                        return;
+
+                    }
+                }
+            }
+
         }
 
         function Reiniciar() {
@@ -155,27 +210,31 @@
             for (let i = 0; i <= lado - 1; i++) {
                 for (let j = 1; j <= lado; j++) {
                     let numero = (i * lado) + j;
-                    let tembomba = Math.floor(Math.random() * 2);
+                    let tembomba = Math.floor(Math.random() * 100);
+                    if (tembomba <= 9) {
+                        listabombas.push(1);
+                    }
+                    else {
+                        listabombas.push(0);
+                    }
                     let quadrado = document.getElementById(`quadrado${numero}`);
-                    listabombas.push(tembomba);
                     console.log(listabombas);
                     quadrado.setAttribute("src", "./quadrado.png")
                 }
             }
         }
-        function OlharEmVolta(a) {
+        function ContarBombasEmVolta(a) {
             let contBombas = 0;
             let inicio = ValorDoInicio(a);
-            let fim = ValorDoFim(a)
+            let fim = ValorDoFim(a);
+            let posicao;
 
             for (let i = -1; i <= 1; i++) {
                 for (let j = inicio; j <= fim; j++) {
-                    let posicao;
+
                     posicao = a + (lado * i) + j;
-                    console.log("posicao" + posicao);
                     if (listabombas[posicao - 1] == 1) {
                         contBombas++;
-                        console.log(contBombas);
                     }
                 }
             }
@@ -183,6 +242,7 @@
 
             return contBombas;
         }
+
         function ValorDoInicio(a) {
             if (a % lado == 1) {
                 return 0;
@@ -197,7 +257,8 @@
             }
             else { return 1; }
         }
-       
+
+        //tabuleiro inicial
         GerarTabuleiro(3);
 
 
