@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .linha {
+            display: flex;
+        }
+
+        .quadrado {
+            width: 60px;
+            height: 60px;
+        }
+
+        button {
+            border: outset;
+            width: 130px;
+            margin: 1%;
+
+        }
+
+        button:active {
+            background-color: grey;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="container">
+    </div>
+
+    <script>
+
+        //variaveis e constantes
+
+        let listaQuadrados = [];
+        let listabombas = [];
+        let lado;
+        let area;
+        const listaimagens = ["./vazio.png", "./um.png", "./dois.png", "./tres.png", "./quatro.png", "./cinco.png", "./seis.png", "./sete.png", "./oito.jpg"];
+        const container = document.getElementById("container");
+
+        //tabuleiro e opcoes
+        let opcoes = document.createElement("div");
+        let jogo = document.createElement("div");
+        container.appendChild(opcoes);
+        container.appendChild(jogo);
+
+
+        //form de definirlado
+        let form = document.createElement("form");
+        let select = document.createElement("select");
+        let label = document.createElement("label");
+        let textolabel = document.createTextNode("Tamanho do lado: ");
+        select.setAttribute("onClick", `MudarLado()`)
+        label.appendChild(textolabel);
+        form.appendChild(label);
+        form.appendChild(select);
+        opcoes.appendChild(form);
+
+
+        //reiniciar
+        let reiniciar = document.createElement("button");
+        let textobotao = document.createTextNode("Reiniciar");
+        reiniciar.appendChild(textobotao);
+        reiniciar.setAttribute("onClick", "Reiniciar()");
+        opcoes.appendChild(reiniciar);
+
+
+        //opcoes de lado
+
+        for (let i = 3; i <= 15; i++) {
+            let option = document.createElement("option");
+            let textoOption = document.createTextNode(`${i}`);
+            option.appendChild(textoOption);
+            select.appendChild(option);
+
+        }
+
+
+
+        function MudarLado() {
+            tamanho = event.target.value;
+            GerarTabuleiro(tamanho);
+        }
+        function GerarTabuleiro(escolha) {
+            if (escolha != lado) {
+
+                lado = escolha;
+                area = lado ** 2;
+                //apagando o tabuleiro anterior:
+                jogo.innerHTML = "";
+                //criando os quadrados:
+                for (let i = 0; i <= escolha - 1; i++) {
+                    jogo.innerHTML += `<div id="linha${i}" class="linha">  </div>`;
+                }
+                for (let i = 0; i <= escolha - 1; i++) {
+                    let linha = document.getElementById(`linha${i}`);
+                    for (let j = 1; j <= escolha; j++) {
+                        let quadradoTela = document.createElement("img");
+
+
+                        let numero = (i * escolha) + j;
+
+                        quadradoTela.setAttribute("id", `quadrado${numero}`);
+                        quadradoTela.setAttribute("class", "quadrado");
+                        quadradoTela.setAttribute("onmousedown", `ClicouQuadrado(${numero},event)`);
+                        quadradoTela.addEventListener(`contextmenu`, function (event) {
+                            event.preventDefault();
+                        });
+
+
+
+                        texto = document.createTextNode(`quadrado${i}.${j}`);
+                        quadradoTela.appendChild(texto);
+                        linha.appendChild(quadradoTela);
+                        document.addEventListener(`quadrado${numero}`, function (event) {
+                            event.preventDefault();
+                        });
+                    }
+                }
+            }
+            Reiniciar();
+        }
+
+        class Quadrado {
+            id = null;
+            tembomba = null;
+            valor = null;
+            src = null;
+
+            superiorEsquerdo = null;
+            superior = null;
+            superiorDireito = null;
+            esquerdo = null;
+            direito = null;
+            inferiorEsquerdo = null;
+            inferior = null;
+            inferiorDireito = null;
+        }
+
+        function Reiniciar() {
+            listabombas = [];
+            listaQuadrados = [];
+            let contR = 0;
+            for (let i = 0; i <= lado - 1; i++) { //linha
+                for (let j = 1; j <= lado; j++) { //coluna
+                    contR++;
+                    let numero = (i * lado) + j;
+                    let naleatorio = Math.floor(Math.random() * 100);
+                    let quadrado = new Quadrado();
+                    let tembomba;
+                    if (naleatorio <= 3) {
+                        tembomba = 1;
+                    }
+                    else {
+                        tembomba = 0;
+                        quadrado.valor = ContarBombasEmVolta(numero);
+                    }
+                    quadrado.id = numero;
+                    quadrado.tembomba = tembomba;
+                    quadrado.src = "./quadrado.png";
+                    listabombas.push(tembomba);
+                    listaQuadrados.push(quadrado);
+                    let quadradoTela = document.getElementById(`quadrado${numero}`);
+                    console.log(quadradoTela);
+                    quadradoTela.setAttribute("src", "./quadrado.png");
+
+
+                    //agora vamos a loucura
+
+                }
+            }
+            adicionarExplosaoEmCadeia();
+        }
+
+        function adicionarExplosaoEmCadeia() {
+            let contR = 0;
+            for (let i = 0; i <= lado - 1; i++) { //linha
+                for (let j = 1; j <= lado; j++) { //coluna
+                    contR++;
+                    //superior, superior esquerdo e inferior direito estao errados
+                    let numeroId = (i * lado) + j;
+                    let quadrado = listaQuadrados[numeroId - 1];
+                    // console.log(quadrado);
+                    // console.log(numeroId);
+                    //parece q por algum motivo a matematica do js nao calcula bem certas expressoes com (). Mais especificamente algo como 4-(1+1), em q há um sinal de + dentro do parenteses
+                    let superior = listaQuadrados[numeroId - (lado) - 1];
+                    quadrado.superior = superior;
+                    let inferior = listaQuadrados[numeroId + (lado - 1)];
+                    quadrado.inferior = inferior;
+                    if (ValorDoInicio(numeroId) != 0) {
+                        let superiorEsquerdo = listaQuadrados[numeroId - (lado) - 2];
+                        quadrado.superiorEsquerdo = superiorEsquerdo;
+                        let esquerdo = listaQuadrados[numeroId - 2];
+                        quadrado.esquerdo = esquerdo;
+
+                        let inferiorEsquerdo = listaQuadrados[numeroId + (lado - 2)];
+                        quadrado.inferiorEsquerdo = inferiorEsquerdo;
+                    }
+
+                    if (ValorDoFim(numeroId) != 0) {
+                        let superiorDireito = listaQuadrados[numeroId - lado];
+                        quadrado.superiorDireito = superiorDireito;
+                        let direito = listaQuadrados[numeroId];
+                        quadrado.direito = direito;
+                        let inferiorDireito = listaQuadrados[numeroId - (-lado)];
+                        quadrado.inferiorDireito = inferiorDireito;
+                    }
+                }
+            }
+
+        }
+        function ContarBombasEmVolta(a) { //retorna as bombas em volta, de 0 a 8
+            let contBombas = 0;
+            let inicio = ValorDoInicio(a);
+            let fim = ValorDoFim(a);
+            let posicao;
+
+            for (let i = -1; i <= 1; i++) {
+                for (let j = inicio; j <= fim; j++) {
+
+                    posicao = a + (lado * i) + j;
+                    if (listabombas[posicao - 1] == 1) {
+                        contBombas++;
+                    }
+                }
+            }
+
+
+            return contBombas;
+        }
+
+        function ValorDoInicio(a) { //verifica se o quadrado está no canto esquerdo
+            if (a % lado == 1) { //se o resto da (posicao q o quadrado ta dividido pelo lado) é 1
+                return 0;
+            }
+            else {
+                return -1;
+            }
+        }
+        function ValorDoFim(a) {//verifica se o quadrado está no canto direito
+            if (a % lado == 0) {
+                return 0;
+            }
+            else { return 1; }
+        }
+
+        function ClicouQuadrado(a, event) {
+            // console.log(event.preventDefault());
+            console.log("clicou");
+            let quadradoescolhido = document.getElementById(`quadrado${a}`);
+            if (event.button == 0) { //clicou botao esquerdo
+                ChecarBomba(a);
+            }
+            if (event.button == 2) { //clicou botao direito
+                if (quadradoescolhido.getAttribute("src") == "./quadrado.png") {
+                    quadradoescolhido.setAttribute("src", "./bandeira.jpg");
+                }
+                else if (quadradoescolhido.getAttribute("src") == "./bandeira.jpg") {
+                    quadradoescolhido.setAttribute("src", "./quadrado.png");
+                }
+            }
+        }
+
+        function ChecarBomba(a) {
+            let quadradoescolhido = document.getElementById(`quadrado${a}`);
+            let bomba = listabombas[a - 1];
+            //     if(!quadradoescolhido.getAttribute("src","vazio.png"))
+            // {
+            if (bomba == 1) {
+                quadradoescolhido.setAttribute("src", "boom.png");
+                listaQuadrados[a - 1].src = "boom.png";
+            }
+            else if (bomba == 0) {
+
+                BotandoNumero(a);
+
+            }
+            // }
+
+        }
+        function BotandoNumero(a) {
+            let quadradoescolhido = document.getElementById(`quadrado${a}`);
+            let bombasEncontradas = listaimagens[ContarBombasEmVolta(a)];
+            quadradoescolhido.setAttribute("src", bombasEncontradas);
+            listaQuadrados[a - 1].src = bombasEncontradas;
+            if (bombasEncontradas == "./vazio.png") {
+                let quadrado = listaQuadrados[a - 1];
+                // if (quadrado.superiorEsquerdo != null)//curioso q pode tanto ter valor null quanto undefined, mas o js considera null como igual a undefined nessa situacao
+                // {
+                //     if (quadrado.superiorEsquerdo.src == "./quadrado.png")
+                //         BotandoNumero(quadrado.superiorEsquerdo.id);
+                // }
+                expandir(quadrado.superiorEsquerdo);
+                expandir(quadrado.superior);
+                expandir(quadrado.superiorDireito);
+                expandir(quadrado.esquerdo);
+                expandir(quadrado.direito);
+                expandir(quadrado.inferiorEsquerdo);
+                expandir(quadrado.inferior);
+                expandir(quadrado.inferiorDireito);
+                // if (quadrado.superiordireito != null) {
+                //     BotandoNumero(quadrado.superiordireito.id);
+                // }
+                // if (quadrado.esquerdo != null) {
+                //     BotandoNumero(quadrado.esquerdo.id);
+                // }
+                // if (quadrado.direito != null) {
+                //     BotandoNumero(quadrado.direito.id);
+                // }
+                // if (quadrado.inferioresquerdo != null) {
+                //     BotandoNumero(quadrado.inferioresquerdo.id);
+                // }
+                // if (quadrado.inferior != null) {
+                //     BotandoNumero(quadrado.inferior.id);
+                // }
+                // if (quadrado.inferiordireito != null) {
+                //     BotandoNumero(quadrado.inferiordireito.id);
+                // }
+            }
+        }
+        function expandir(quadrado) {
+            if (quadrado != null) {
+                if (quadrado.src == "./quadrado.png") {
+                    BotandoNumero(quadrado.id);
+                }
+            }
+        }
+        // function Expandir(a) {
+        //     let quadrado = listaQuadrados[a - 1];
+        //     if(quadrado.superior!=null)
+        //     {
+        //         BotandoNumero(quadrado.superior.id);
+        //     }
+        //     // if (quadrado.superiorEsquerdo != null)//curioso q pode tanto ter valor null quanto undefined, mas o js considera null como igual a undefined nessa situacao
+        //     // {
+        //     //     BotandoNumero(quadrado.superiorEsquerdo.id);
+        //     // }
+
+        //     if(quadrado.superiordireito!=null)
+        //     {
+        //         BotandoNumero(quadrado.superiordireito.id);
+        //     }
+        //     if(quadrado.esquerdo!=null)
+        //     {
+        //         BotandoNumero(quadrado.esquerdo.id);
+        //     }
+        //     if(quadrado.direito!=null)
+        //     {
+        //         BotandoNumero(quadrado.direito.id);
+        //     }
+        //     if(quadrado.inferioresquerdo!=null)
+        //     {
+        //         BotandoNumero(quadrado.inferioresquerdo.id);
+        //     }
+        //     if(quadrado.inferior!=null)
+        //     {
+        //         BotandoNumero(quadrado.inferior.id);
+        //     }
+        //     if(quadrado.inferiordireito!=null)
+        //     {
+        //         BotandoNumero(quadrado.inferiordireito.id);
+        //     }
+        // }
+
+
+
+        // function continuarExpandindo(a) {
+        //     let inicio = ValorDoInicio(a);
+        //     let fim = ValorDoFim(a);
+        //     let posicao;
+
+        //     for (let i = -1; i <= 1; i++) {
+        //         for (let j = inicio; j <= fim; j++) {
+
+        //             posicao = a + (lado * i) + j;
+        //             if (listabombas[posicao]!=null)
+        //             {
+        //              if(listabombas[posicao - 1] == 0) {
+        //                 console.log("chegou aqui");
+        //                 BotandoNumero(posicao);
+        //                 return;
+        //             }
+        //         }
+        //         }
+        //     }
+
+        // }
+
+
+        //tabuleiro inicial
+        GerarTabuleiro(3);
+
+
+
+    </script>
+</body>
+
+</html>
